@@ -8,9 +8,9 @@
 <?php
 	//definição dos dados para fazer conexão com o banco de dados MySQL
 	define( 'MYSQL_HOST', 'localhost' );
-	define( 'MYSQL_USER', 'root' );
-	define( 'MYSQL_PASSWORD', 'abcd' );
-	define( 'MYSQL_DB_NAME', 'processo_seletivo' );
+	define( 'MYSQL_USER', 'root' ); //substituir pelo seu usuário
+	define( 'MYSQL_PASSWORD', 'abcd' ); //substituir pela sua senha do MySQL
+	define( 'MYSQL_DB_NAME', 'processo_seletivo' ); //substituir pelo nome do seu banco de dados
 	//tentar conexão com o banco de dados através dos dados fornecidos acima
 	try{
 		$PDO = new PDO( 'mysql:host=' . MYSQL_HOST . ';dbname=' . MYSQL_DB_NAME, MYSQL_USER, MYSQL_PASSWORD );
@@ -27,13 +27,39 @@
 		if(empty($valores_encontrados)){return 0;}
 		else{return 1;}
 	}
+
 	//inserir ou alterar um produto no banco de dados com base nos dados fornecidos
-	//caso a função "checar_se_produto_existe" retorne um valor false, inserir novo produto no banco de dados. Caso a função retorne um valor true, atualizar produto no banco de dados	
-	function inserir_ou_alterar_produto($produto, $cor, $tamanho, $deposito, $data_disponibilidade, $quantidade){
-		
+	//caso a função de checagem retorne um valor 0, inserir novo produto no banco de dados. Caso a função retorne o valor 1, atualizar produto no banco de dados	
+	function inserir_ou_alterar_produto($produto, $novo_produto, $cor, $tamanho, $deposito, $data_disponibilidade, $quantidade){
+		global $PDO;
+		$comando_sql = null;
+		if(checar_se_produto_existe($produto) == 0){
+			$comando_sql = "INSERT INTO estoque (produto, cor, tamanho, deposito, data_disponibilidade, quantidade) VALUES (:produto , :cor , :tamanho , :deposito , :data_disponibilidade , :quantidade );";
+		}
+		else{
+			$comando_sql = "UPDATE estoque SET produto = :novo_produto , cor = :cor , tamanho = :tamanho , deposito = :deposito , data_disponibilidade = :data_disponibilidade , quantidade = :quantidade WHERE produto = :produto";
+		}
+		echo $comando_sql;
+		//passando valores dos argumentos da função para os parâmetros do comando SQL
+		$execucao = $PDO->prepare($comando_sql);
+		$execucao->bindParam(':produto', $produto );
+		$execucao->bindParam(':novo_produto', $novo_produto );
+		$execucao->bindParam(':cor', $cor );
+		$execucao->bindParam(':tamanho', $tamanho );
+		$execucao->bindParam(':deposito', $deposito );
+		$execucao->bindParam(':data_disponibilidade', $data_disponibilidade );
+		$execucao->bindParam(':quantidade', $quantidade );
+		//execução do comando
+		$resultado = $execucao->execute();
+		//mostrar mensagem de erro caso tenha ocorrido um erro durante a execução do comando SQL
+		if (! $resultado ) {
+			var_dump( $execucao->errorInfo() );
+			exit;
+		}		
+		echo "produto inserido/alterado!";
 	}
 
-	echo (checar_se_produto_existe("11.01.0419"));
+	inserir_ou_alterar_produto("12.01.0419", "11.01.0413", "03", "M", "DEP3", "2020-12-01", 15);
 ?>
 </body>
 </html>
