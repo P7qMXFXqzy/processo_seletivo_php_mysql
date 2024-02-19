@@ -33,22 +33,25 @@
 	function inserir_ou_alterar_produto($produto, $novo_produto, $cor, $tamanho, $deposito, $data_disponibilidade, $quantidade){
 		global $PDO;
 		$comando_sql = null;
+		$execucao = null;
+		//definindo qual comando sql será usado e inserindo valores dos parâmetros nos parâmetros do comando SQL
 		if(checar_se_produto_existe($produto) == 0){
 			$comando_sql = "INSERT INTO estoque (produto, cor, tamanho, deposito, data_disponibilidade, quantidade) VALUES (:produto , :cor , :tamanho , :deposito , :data_disponibilidade , :quantidade );";
+			$execucao = $PDO->prepare($comando_sql);
 		}
+		//o parâmetro "$novo_produto" só será utilizado quando houver edição de um novo produto
 		else{
 			$comando_sql = "UPDATE estoque SET produto = :novo_produto , cor = :cor , tamanho = :tamanho , deposito = :deposito , data_disponibilidade = :data_disponibilidade , quantidade = :quantidade WHERE produto = :produto";
+			$execucao = $PDO->prepare($comando_sql);
+			$execucao->bindParam(':novo_produto', $novo_produto );
 		}
-		echo $comando_sql;
-		//passando valores dos argumentos da função para os parâmetros do comando SQL
-		$execucao = $PDO->prepare($comando_sql);
 		$execucao->bindParam(':produto', $produto );
-		$execucao->bindParam(':novo_produto', $novo_produto );
 		$execucao->bindParam(':cor', $cor );
 		$execucao->bindParam(':tamanho', $tamanho );
 		$execucao->bindParam(':deposito', $deposito );
 		$execucao->bindParam(':data_disponibilidade', $data_disponibilidade );
-		$execucao->bindParam(':quantidade', $quantidade );
+		$execucao->bindParam(':quantidade', $quantidade );	
+		//passando valores dos argumentos da função para os parâmetros do comando SQL
 		//execução do comando
 		$resultado = $execucao->execute();
 		//mostrar mensagem de erro caso tenha ocorrido um erro durante a execução do comando SQL
@@ -59,7 +62,7 @@
 		echo "produto inserido/alterado!";
 	}
 
-	inserir_ou_alterar_produto("12.01.0419", "11.01.0413", "03", "M", "DEP3", "2020-12-01", 15);
+	inserir_ou_alterar_produto("20.01.0419", "11.22.3333", "01", "GG", "DEP5", "2022-10-05", 15);
 ?>
 </body>
 </html>
