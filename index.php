@@ -29,20 +29,19 @@
 	}
 
 	//inserir ou alterar um produto no banco de dados com base nos dados fornecidos
-	function inserir_ou_alterar_produto($produto, $alterar_produto, $cor, $tamanho, $deposito, $data_disponibilidade, $quantidade){
+	function inserir_ou_atualizar_produto($produto, $cor, $tamanho, $deposito, $data_disponibilidade, $quantidade){
 		global $PDO;
 		$comando_sql = null;
 		$execucao = null;
 		//inserir um novo produto caso ele ainda não exista no banco de dados
-		if(checar_se_produto_existe($produto) == 0 && checar_se_produto_existe($alterar_produto) == 0){
+		if(checar_se_produto_existe($produto) == 0){
 			$comando_sql = "INSERT INTO estoque (produto, cor, tamanho, deposito, data_disponibilidade, quantidade) VALUES (:produto , :cor , :tamanho , :deposito , :data_disponibilidade , :quantidade );";
 			$execucao = $PDO->prepare($comando_sql);
 		}
 		//atualizar um produto caso ele tenha sido encontrado no banco de dados
 		else{
-			$comando_sql = "UPDATE estoque SET produto = :alterar_produto , cor = :cor , tamanho = :tamanho , deposito = :deposito , data_disponibilidade = :data_disponibilidade , quantidade = :quantidade WHERE produto = :produto";
+			$comando_sql = "UPDATE estoque SET produto = :produto , cor = :cor , tamanho = :tamanho , deposito = :deposito , data_disponibilidade = :data_disponibilidade , quantidade = :quantidade WHERE produto = :produto";
 			$execucao = $PDO->prepare($comando_sql);
-			$execucao->bindParam(':alterar_produto', $alterar_produto );
 		}
 		//passando o valor de todos os parâmetros da função para os parâmetros do comando SQL (estes estão fora de um bloco if-else pois todos serão utilizados em todos os comandos SQL)
 		$execucao->bindParam(':produto', $produto );
@@ -57,7 +56,7 @@
 			echo '<br>'."produto inserido/alterado com sucesso!";
 		}
 		//mostrar mensagem de erro caso tenha ocorrido um erro durante a execução do comando SQL
-		catch(Exception $e){echo '<br>'."Algo está errado com seu arquivo JSON! Verifique se já não existe um produto com o mesmo nome que você tentou inserir ou se algum dado está marcado como \"null\"! Nome do produto: ".$alterar_produto;}
+		catch(Exception $e){echo "<br>"."Algo está errado com seu JSON! Verifique os valores inseridos. Produto que gerou erro: ".$produto;}
 	}
 
 	//receber e converter dados dentro do arquivo "dados_inseridos.json" para um array 
@@ -65,15 +64,14 @@
 	$dados_json_convertidos = json_decode($dados_json, true);
 	//inserir ou editar no banco de dados cada endereço/grupo de dados dentro do array
 	for($i = 0; $i < count($dados_json_convertidos); $i++){
-		//checar se a linha "alterar_produto" existe neste endereço no arquivo json e se ela não tem um valor "null", se sim, o algoritmo interpretará que o usuário quer alterar o nome atual do produto pelo valor da linha "alterar_produto".
-		if(isset($dados_json_convertidos[$i]["alterar_produto"]) && $dados_json_convertidos[$i]["alterar_produto"] != null){
-			inserir_ou_alterar_produto($dados_json_convertidos[$i]["produto"], $dados_json_convertidos[$i]["alterar_produto"], $dados_json_convertidos[$i]["cor"], $dados_json_convertidos[$i]["tamanho"], $dados_json_convertidos[$i]["deposito"], $dados_json_convertidos[$i]["data_disponibilidade"], $dados_json_convertidos[$i]["quantidade"]);
-		}
-		//caso o usuário não tenha inserido um valor para "alterar_produto" (ou se tiver um valor "null"), reutilizará o nome inicial do produto, indicando que o produto em questão não terá seu nome alterado
-		else{
-			inserir_ou_alterar_produto($dados_json_convertidos[$i]["produto"], $dados_json_convertidos[$i]["produto"], $dados_json_convertidos[$i]["cor"], $dados_json_convertidos[$i]["tamanho"], $dados_json_convertidos[$i]["deposito"], $dados_json_convertidos[$i]["data_disponibilidade"], $dados_json_convertidos[$i]["quantidade"]);
-		}
+		//checar se a linha "atualizar_produto" existe neste endereço no arquivo json e se ela não tem um valor "null", caso exista, o algoritmo interpretará que o usuário quer alterar o produto inserido com os dados fornecidos.
+		inserir_ou_atualizar_produto($dados_json_convertidos[$i]["produto"], $dados_json_convertidos[$i]["cor"], $dados_json_convertidos[$i]["tamanho"], $dados_json_convertidos[$i]["deposito"], $dados_json_convertidos[$i]["data_disponibilidade"], $dados_json_convertidos[$i]["quantidade"]);
 	}
+	/*POSSÍVEIS CAUSAS DE ERRO:
+ 	1- O usuário tentou inserir um grupo de dados que já existe no BD (sem nenhuma alteração);
+  	2- Um dos campos está marcado com valor nulo, desobedecendo a regra estabelecida durante a criação do banco de dados.
+ 	*/
+
 ?>
 </body>
 </html>
