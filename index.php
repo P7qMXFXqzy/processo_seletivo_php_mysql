@@ -64,7 +64,6 @@
 	$dados_json_convertidos = json_decode($dados_json, true);
 	//inserir ou editar no banco de dados cada endereço/grupo de dados dentro do array
 	for($i = 0; $i < count($dados_json_convertidos); $i++){
-		//checar se a linha "atualizar_produto" existe neste endereço no arquivo json e se ela não tem um valor "null", caso exista, o algoritmo interpretará que o usuário quer alterar o produto inserido com os dados fornecidos.
 		inserir_ou_atualizar_produto($dados_json_convertidos[$i]["produto"], $dados_json_convertidos[$i]["cor"], $dados_json_convertidos[$i]["tamanho"], $dados_json_convertidos[$i]["deposito"], $dados_json_convertidos[$i]["data_disponibilidade"], $dados_json_convertidos[$i]["quantidade"]);
 	}
 	/*POSSÍVEIS CAUSAS DE ERRO:
